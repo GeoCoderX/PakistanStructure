@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pakistan Infrastructure Dashboard | Neon Vision</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="neon-dashboard.css">
+</head>
+<body class="dark-theme">
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="spinner-overlay">
+        <div class="neon-spinner">
+            <div class="spinner-circle"></div>
+            <div class="spinner-text">
+                <span class="neon-text">LOADING</span>
+                <span class="pulse-text">GEOJSON DATA</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Header with Neon Effect -->
+    <header class="neon-header">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <div class="header-content">
+                        <h1 class="main-title">
+                            <span class="neon-gradient">PAKISTAN</span>
+                            <span class="neon-pink">INFRASTRUCTURE</span>
+                            <span class="neon-cyan">DASHBOARD</span>
+                        </h1>
+                        <p class="subtitle">
+                            <i class="fas fa-bridge neon-yellow"></i>
+                            <span class="neon-glow">Bridges & Culverts Monitoring System</span>
+                            <i class="fas fa-road neon-green"></i>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container-fluid dashboard-container">
+        <!-- Data Status Bar -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="status-card neon-border">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="status-content">
+                                <h6 class="status-title">
+                                    <i class="fas fa-database neon-blue"></i>
+                                    <span>DATA STATUS</span>
+                                </h6>
+                                <div class="status-info">
+                                    <span id="dataStatus" class="neon-text">Loading GeoJSON data...</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="status-actions">
+                                <button class="btn btn-neon-reload" id="reloadData">
+                                    <i class="fas fa-sync-alt"></i>
+                                    Reload Data
+                                </button>
+                                <button class="btn btn-neon-info" id="debugBtn">
+                                    <i class="fas fa-bug"></i>
+                                    Debug
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filter Panel with Neon Effects -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="filter-panel neon-card">
+                    <div class="panel-header neon-header">
+                        <i class="fas fa-sliders-h"></i>
+                        <h5>FILTERS & CONTROLS</h5>
+                        <div class="header-glow"></div>
+                    </div>
+                    
+                    <div class="panel-body">
+                        <!-- First Row of Filters -->
+                        <div class="row filter-row">
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="filter-group">
+                                    <label for="districtSelect" class="filter-label neon-label">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        District
+                                    </label>
+                                    <div class="neon-select-wrapper">
+                                        <select class="form-select neon-select" id="districtSelect">
+                                            <option value="all">All Districts</option>
+                                            <!-- Options will be populated by JavaScript -->
+                                        </select>
+                                        <div class="select-glow"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="filter-group">
+                                    <label for="typeSelect" class="filter-label neon-label">
+                                        <i class="fas fa-road"></i>
+                                        Structure Type
+                                    </label>
+                                    <div class="neon-select-wrapper">
+                                        <select class="form-select neon-select" id="typeSelect">
+                                            <option value="all">All Types</option>
+                                            <option value="bridge">Bridge</option>
+                                            <option value="culvert">Culvert</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                        <div class="select-glow"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="filter-group">
+                                    <label for="conditionSelect" class="filter-label neon-label">
+                                        <i class="fas fa-clipboard-check"></i>
+                                        Condition
+                                    </label>
+                                    <div class="neon-select-wrapper">
+                                        <select class="form-select neon-select" id="conditionSelect">
+                                            <option value="all">All Conditions</option>
+                                            <option value="EXCELLENT" class="text-success">Excellent</option>
+                                            <option value="GOOD" class="text-info">Good</option>
+                                            <option value="FAIR" class="text-warning">Fair</option>
+                                            <option value="POOR" class="text-danger">Poor</option>
+                                        </select>
+                                        <div class="select-glow"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="filter-group">
+                                    <label for="lengthRange" class="filter-label neon-label">
+                                        <i class="fas fa-ruler-horizontal"></i>
+                                        Length (m): 
+                                        <span id="lengthValue" class="value-display">0-100</span>
+                                    </label>
+                                    <div class="neon-slider-container">
+                                        <input type="range" class="form-range neon-slider" min="0" max="100" step="1" id="lengthRange" value="100">
+                                        <div class="slider-track"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Second Row of Filters -->
+                        <div class="row filter-row">
+                            <div class="col-lg-4 col-md-6 mb-3">
+                                <div class="filter-group">
+                                    <label for="widthRange" class="filter-label neon-label">
+                                        <i class="fas fa-ruler-vertical"></i>
+                                        Width (m): 
+                                        <span id="widthValue" class="value-display">0-20</span>
+                                    </label>
+                                    <div class="neon-slider-container">
+                                        <input type="range" class="form-range neon-slider" min="0" max="20" step="0.5" id="widthRange" value="20">
+                                        <div class="slider-track"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-4 col-md-6 mb-3">
+                                <div class="filter-group">
+                                    <label for="spanRange" class="filter-label neon-label">
+                                        <i class="fas fa-expand-alt"></i>
+                                        Span (m): 
+                                        <span id="spanValue" class="value-display">0-50</span>
+                                    </label>
+                                    <div class="neon-slider-container">
+                                        <input type="range" class="form-range neon-slider" min="0" max="50" step="1" id="spanRange" value="50">
+                                        <div class="slider-track"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-4 col-md-12 mb-3">
+                                <div class="filter-actions">
+                                    <button class="btn btn-neon-reset" id="resetFilters">
+                                        <i class="fas fa-redo"></i>
+                                        Reset All Filters
+                                    </button>
+                                    <button class="btn btn-neon-export" id="exportData">
+                                        <i class="fas fa-download"></i>
+                                        Export Data
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Dashboard Content -->
+        <div class="row g-4">
+            <!-- Left Panel - Bridges Summary -->
+            <div class="col-lg-3 col-md-6">
+                <div class="summary-panel neon-card">
+                    <div class="panel-header bridge-header">
+                        <i class="fas fa-bridge"></i>
+                        <h5>BRIDGES SUMMARY</h5>
+                        <div class="header-glow bridge-glow"></div>
+                    </div>
+                    
+                    <div class="panel-body">
+                        <div class="stat-card bridge-stat">
+                            <div class="stat-icon">
+                                <i class="fas fa-bridge"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value neon-blue" id="totalBridges">0</div>
+                                <div class="stat-label">Total Bridges</div>
+                            </div>
+                            <div class="stat-glow"></div>
+                        </div>
+                        
+                        <div class="condition-breakdown mt-4">
+                            <h6 class="breakdown-title">
+                                <i class="fas fa-chart-pie"></i>
+                                Condition Breakdown
+                            </h6>
+                            <div class="conditions-grid">
+                                <div class="condition-item excellent">
+                                    <span class="condition-label">EXCELLENT</span>
+                                    <span class="condition-value badge neon-green-badge" id="bridgeExcellent">0</span>
+                                </div>
+                                <div class="condition-item good">
+                                    <span class="condition-label">GOOD</span>
+                                    <span class="condition-value badge neon-cyan-badge" id="bridgeGood">0</span>
+                                </div>
+                                <div class="condition-item fair">
+                                    <span class="condition-label">FAIR</span>
+                                    <span class="condition-value badge neon-yellow-badge" id="bridgeFair">0</span>
+                                </div>
+                                <div class="condition-item poor">
+                                    <span class="condition-label">POOR</span>
+                                    <span class="condition-value badge neon-red-badge" id="bridgePoor">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <canvas id="bridgeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Center Panel - Map -->
+            <div class="col-lg-6 col-md-12">
+                <div class="map-panel neon-card">
+                    <div class="panel-header map-header">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <h5>PAKISTAN INFRASTRUCTURE MAP</h5>
+                        <div class="header-glow map-glow"></div>
+                    </div>
+                    
+                    <div class="panel-body">
+                        <div class="map-container" id="mapContainer">
+                            <div id="map"></div>
+                            <div class="map-overlay">
+                                <div class="map-legend">
+                                    <h6>Legend</h6>
+                                    <div class="legend-items">
+                                        <div class="legend-item">
+                                            <span class="legend-color excellent"></span>
+                                            <span class="legend-text">Excellent</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="legend-color good"></span>
+                                            <span class="legend-text">Good</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="legend-color fair"></span>
+                                            <span class="legend-text">Fair</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="legend-color poor"></span>
+                                            <span class="legend-text">Poor</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Panel - Culverts Summary -->
+            <div class="col-lg-3 col-md-6">
+                <div class="summary-panel neon-card">
+                    <div class="panel-header culvert-header">
+                        <i class="fas fa-water"></i>
+                        <h5>CULVERTS SUMMARY</h5>
+                        <div class="header-glow culvert-glow"></div>
+                    </div>
+                    
+                    <div class="panel-body">
+                        <div class="stat-card culvert-stat">
+                            <div class="stat-icon">
+                                <i class="fas fa-water"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value neon-cyan" id="totalCulverts">0</div>
+                                <div class="stat-label">Total Culverts</div>
+                            </div>
+                            <div class="stat-glow"></div>
+                        </div>
+                        
+                        <div class="condition-breakdown mt-4">
+                            <h6 class="breakdown-title">
+                                <i class="fas fa-chart-pie"></i>
+                                Condition Breakdown
+                            </h6>
+                            <div class="conditions-grid">
+                                <div class="condition-item excellent">
+                                    <span class="condition-label">EXCELLENT</span>
+                                    <span class="condition-value badge neon-green-badge" id="culvertExcellent">0</span>
+                                </div>
+                                <div class="condition-item good">
+                                    <span class="condition-label">GOOD</span>
+                                    <span class="condition-value badge neon-cyan-badge" id="culvertGood">0</span>
+                                </div>
+                                <div class="condition-item fair">
+                                    <span class="condition-label">FAIR</span>
+                                    <span class="condition-value badge neon-yellow-badge" id="culvertFair">0</span>
+                                </div>
+                                <div class="condition-item poor">
+                                    <span class="condition-label">POOR</span>
+                                    <span class="condition-value badge neon-red-badge" id="culvertPoor">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <canvas id="culvertChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stats Footer -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="stats-footer neon-border">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <div class="footer-stat">
+                                <div class="footer-stat-value" id="totalFeatures">0</div>
+                                <div class="footer-stat-label">Total Structures</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="footer-stat">
+                                <div class="footer-stat-value" id="avgLength">0</div>
+                                <div class="footer-stat-label">Avg Length (m)</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="footer-stat">
+                                <div class="footer-stat-value" id="avgWidth">0</div>
+                                <div class="footer-stat-label">Avg Width (m)</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="footer-stat">
+                                <div class="footer-stat-value" id="avgSpan">0</div>
+                                <div class="footer-stat-label">Avg Span (m)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="neon-footer">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="footer-text">
+                            <i class="fas fa-code neon-pink"></i>
+                            Pakistan Infrastructure Dashboard v2.0
+                        </p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <p class="footer-text">
+                            Data Source: GeoJSON Bridge/Culvert Data
+                            <i class="fas fa-database neon-blue"></i>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="dashboard.js"></script>
+    
+    <script>
+        // Additional UI interactions
+        document.getElementById('debugBtn').addEventListener('click', function() {
+            if (typeof debugFeature === 'function') {
+                debugFeature(0);
+                alert('Debug information logged to console (F12)');
+            }
+        });
+        
+        document.getElementById('exportData').addEventListener('click', function() {
+            if (!allData) {
+                alert('No data available to export');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(allData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = 'infrastructure_data.json';
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            // Show notification
+            const notification = document.createElement('div');
+            notification.className = 'neon-notification';
+            notification.innerHTML = '<i class="fas fa-check-circle"></i> Data exported successfully!';
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        });
+        
+        // Add hover effects to cards
+        document.querySelectorAll('.neon-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
